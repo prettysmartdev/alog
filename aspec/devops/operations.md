@@ -2,10 +2,10 @@
 
 ## Installing and running
 Installation:
-- guidance
+- alog CLI binary is installed to /usr/local/bin/ or similar appropriate location for the host operating system
 
 Setup and run:
-- guidance
+- setup will be git-repo independent and will be described in a future work item
 
 Environment variables:
 - guidance
@@ -16,7 +16,4 @@ Secrets:
 ## Ongoing operations
 
 Version upgrades/downgrades:
-- guidance
-
-Database migrations:
 - guidance

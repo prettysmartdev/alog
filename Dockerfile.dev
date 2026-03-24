@@ -1,0 +1,27 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates \
+    curl \
+    make \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust 1.85.0 via rustup
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH \
+    RUST_VERSION=1.94.0
+
+RUN curl -fsSL https://sh.rustup.rs | \
+    sh -s -- -y --no-modify-path --default-toolchain ${RUST_VERSION} --profile minimal \
+    && rustup --version \
+    && rustc --version \
+    && cargo --version
+
+# Install Claude Code via official standalone installer
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && cp /root/.local/bin/claude /usr/local/bin/claude
+
+WORKDIR /workspace

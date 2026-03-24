@@ -1,18 +1,20 @@
 # Local Development
 
-Development: [local | docker | remote | other]
-Build tools: [make | npm | uv | other]
+Development: local
+Build tools: make, cargo
 
 ## Workflows:
 
 Developer Loop:
-- directions
+- running `make all` should build the alog CLI binary using the local Rust/Cargo toolchain
+- running `make install` should run `make all` and then install the alog CLI to /usr/local/bin/
+
 
 Local testing:
-- directions
+- running `make test` should run all tests in the project
 
 Version control:
-- directions
+- Git is used for this project
 
 Documentation:
-- directions
+- After every work item is implemented, documentation should be written within the docs/ folder. Do not create one document per work item, but instead author a comprehensive set of documentation that explains to the user how to use the aspec tool in its entirety. Each work item should trigger an inspection of the entire docs/ folder to update and/or add relevant usage information.

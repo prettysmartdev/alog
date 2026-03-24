@@ -1,43 +1,77 @@
 <p align="center">
-  <strong>Secure, Predictable Agentic Development</strong> <br>
-  Run agents inside containers, never on your machine. <br>
-  Use structured Markdown specifications to guide agents for predictable results.
+  <strong>A notebook for your agents.</strong> <br>
+  Help with memory, recall, and predictable workflows. <br>
+  Journaling is good for your agents' mental health.
   <br>
   <br>
-  <img src="./docs/aspec_logo.png" width="420" alt="ASPEC">
+  <img src="./docs/alog_logo.svg" width="420" alt="ALOG">
 </p>
 
 ---
 
-## aspec for spec-driven agentic development
-This project is a set of Markdown templates that can be used with a variety of agentic coding tools to create a predictable development workflow. You can co-work with your code agent, using your project's aspec as detailed context, to create quality code more reliably.
+# What is alog?
 
-There is an optional [aspec CLI](https://github.com/cohix/aspec-cli) which helps automate spec-driven workflows and secures agentic coding tools using containers automatically. With or without the CLI, aspec is meant to be a starting point to reduce the initial toil required to bootstrap a generative AI co-authored project.
+`alog` is a CLI logbook for AI agents. Agents write notes during a session — bugs found, patterns observed, approaches that worked or failed — and recall them in future sessions using fuzzy search. It gives agents a persistent memory that survives context resets.
 
-Use this repo as a starting point for spec-driven best practices, and then use your agentic tool of choice to begin building code. All specs are contained within the `aspec` folder, and can be referenced individually or as a collective to help AI build predictable code.
+Notes are stored as local JSON files. No server, no account, no dependencies.
 
-## How to use it
-Use this repository as a template when creating a new project, or copy the `aspec` folder into an existing project. You can work directly with your agent of choice using the example prompts below, or use the [CLI](https://github.com/cohix/aspec-cli) to automate and secure the workflow further.
+## Usage
 
-Initial setup involves reviewing `foundation.md` and the `devops` and `architecture` folders to fill in your project's specific information and guidance. Then, prompt your code agent to set up the project.
+**Write a note:**
+```bash
+alog write bugfix "tokio runtime panicked — was calling .unwrap() on a blocking read inside async fn. Fix: use tokio::task::spawn_blocking." --project=myapi
+```
 
-Example prompt:
-> Bootstrap the project as defined in the `aspec`. Seed the initial codebase skeleton, set up the local development and CI/CD workflows described, and ensure the basic codebase can be built and run, iteratively fixing any issues that come up.
+**Recall notes:**
+```bash
+alog recall bugfix "tokio panic" --project=myapi
+alog recall all "authentication" --project=myapi --count=5 --threshold=70
+```
 
-After initial setup, and after each update to your project's aspec, prompt your code agent to update their own project configuration (such as CLAUDE.md etc.). 
+**Replace a stale note** (id is returned by `alog recall`):
+```bash
+alog write decisions "switched from sqlx to diesel — better compile-time guarantees" --project=myapi --replace=abc123
+```
 
-Example prompt:
-> Review the `aspec` folder and configure CLAUDE.md along with the .claude directory to conform to its specifications. The `aspec` folder is the only source of truth for this project going forwards, and every task should follow its guidelines. 
+## Categories
 
-Next, review the `uxui` and `genai` folders to customize for your project further.
+| Category | Use for |
+|----------|---------|
+| `bugfix` | Root cause and fix for a bug |
+| `whatworks` | Approaches and patterns that succeeded |
+| `problems` | Dead ends and failures |
+| `patterns` | Recurring code idioms in a codebase |
+| `decisions` | Architectural decisions and rationale |
+| `warnings` | Gotchas and sharp edges |
+| `deps` | Dependency quirks and version notes |
+| `perf` | Performance findings |
+| `tests` | Testing patterns and structure |
+| `setup` | Environment and toolchain notes |
 
-The reccomended daily workflow involves creating a new file in the `work-items` folder from `0000-template.md`. Use work items as specs for specific features, bugs, or other development tasks you wish to collaborate with your agent on.
+## Claude Code Skills Integration
 
-For new work items, simply complete the spec and then ask your agent to implement the work item.
+`alog` ships with a Claude Code skill at `.claude/skills/alog.md`. When this skill is active, Claude automatically:
 
-Example prompt:
-> Implement work item 1234. Once complete, implement its reccomended test plan and build all project components. Iteratively fix all build and test issues until all components build successfully and pass all tests.
+- recalls relevant notes **before** starting non-trivial tasks
+- writes notes **after** fixing bugs, making decisions, or hitting dead ends
+- scopes all notes to the current repo using `--project=<git-root-name>`
 
-Eventually, you will want to review `devops/operations.md` to ensure the application can be deployed and run as desired.
+The skill gives Claude a persistent working memory across sessions without any manual prompting.
 
-Happy prompting!
+## Storage
+
+```
+$HOME/.alog/
+  config.json
+  logbook/
+    global/
+      <category>.json
+    <projectname>/
+      <category>.json
+```
+
+Per-repo config lives at `GITROOT/.alog.json`.
+
+## Getting Started
+
+See **[docs/getting-started.md](docs/getting-started.md)** for installation, build instructions, and a walkthrough.
