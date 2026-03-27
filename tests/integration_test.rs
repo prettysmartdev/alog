@@ -2,6 +2,7 @@
 /// Each test sets HOME to a temp directory to avoid polluting the real ~/.alog.
 use std::env;
 use std::sync::{LazyLock, Mutex};
+use alog::commands::{export, write};
 use alog::models::LogEntry;
 use alog::search::fuzzy_search;
 use alog::storage::logbook;
@@ -16,6 +17,7 @@ fn make_entry(category: &str, content: &str, project: Option<&str>) -> LogEntry 
         category: category.into(),
         content: content.into(),
         project: project.map(str::to_string),
+        session: None,
         created_at: Utc::now(),
     }
 }
@@ -74,7 +76,7 @@ async fn test_filter_by_project() {
     logbook::save_entries("myproject", "notes", &proj_entries).await.unwrap();
     logbook::save_entries("global", "notes", &global_entries).await.unwrap();
 
-    let project_only = logbook::load_filtered_entries(Some("myproject"), None).await.unwrap();
+    let project_only = logbook::load_filtered_entries(Some("myproject"), None, None).await.unwrap();
     assert_eq!(project_only.len(), 1);
     assert_eq!(project_only[0].content, "project note");
 }
@@ -92,7 +94,7 @@ async fn test_recall_all_categories() {
         .await
         .unwrap();
 
-    let all = logbook::load_filtered_entries(Some("global"), None).await.unwrap();
+    let all = logbook::load_filtered_entries(Some("global"), None, None).await.unwrap();
     assert_eq!(all.len(), 2);
 }
 
@@ -161,4 +163,109 @@ async fn test_recall_uses_repo_config_threshold() {
     let threshold = config.default_similarity_threshold as f64 / 100.0;
     let results = fuzzy_search(&entries, "totally unrelated query", threshold);
     assert!(results.is_empty());
+}
+
+/// Integration test: write with --session stores session on the entry.
+#[tokio::test]
+async fn test_write_stores_session() {
+    let _guard = HOME_LOCK.lock().unwrap();
+    let tmp = tempfile::tempdir().unwrap();
+    env::set_var("HOME", tmp.path());
+
+    write::run(
+        "notes".into(),
+        "session entry content".into(),
+        None,
+        None,
+        Some("integration-session-1".into()),
+    )
+    .await
+    .unwrap();
+
+    let entries = logbook::load_entries("global", "notes").await.unwrap();
+    assert_eq!(entries.len(), 1);
+    assert_eq!(entries[0].session.as_deref(), Some("integration-session-1"));
+}
+
+/// Integration test: load_filtered_entries with session filter returns only matching entries.
+#[tokio::test]
+async fn test_session_filter_integration() {
+    let _guard = HOME_LOCK.lock().unwrap();
+    let tmp = tempfile::tempdir().unwrap();
+    env::set_var("HOME", tmp.path());
+
+    // Write entries with different sessions
+    write::run("notes".into(), "from session A".into(), None, None, Some("sess-A".into()))
+        .await
+        .unwrap();
+    write::run("notes".into(), "from session B".into(), None, None, Some("sess-B".into()))
+        .await
+        .unwrap();
+    write::run("notes".into(), "no session".into(), None, None, None)
+        .await
+        .unwrap();
+
+    let sess_a = logbook::load_filtered_entries(None, None, Some("sess-A")).await.unwrap();
+    assert_eq!(sess_a.len(), 1);
+    assert_eq!(sess_a[0].content, "from session A");
+
+    let all = logbook::load_filtered_entries(None, None, None).await.unwrap();
+    assert_eq!(all.len(), 3);
+}
+
+/// Integration test: export produces a valid Markdown file with correct content.
+#[tokio::test]
+async fn test_export_writes_markdown_file() {
+    let _guard = HOME_LOCK.lock().unwrap();
+    let tmp = tempfile::tempdir().unwrap();
+    env::set_var("HOME", tmp.path());
+
+    // Write a few entries
+    write::run("bugfix".into(), "fixed null pointer".into(), None, None, Some("s1".into()))
+        .await
+        .unwrap();
+    write::run("decisions".into(), "use postgres".into(), None, None, Some("s1".into()))
+        .await
+        .unwrap();
+    write::run("notes".into(), "irrelevant note".into(), None, None, Some("s2".into()))
+        .await
+        .unwrap();
+
+    let out_path = tmp.path().join("report.md");
+    export::run(
+        out_path.to_str().unwrap().to_string(),
+        None,
+        None,
+        Some("s1".into()),
+    )
+    .await
+    .unwrap();
+
+    assert!(out_path.exists());
+    let content = std::fs::read_to_string(&out_path).unwrap();
+    assert!(content.contains("# alog Export"));
+    assert!(content.contains("fixed null pointer"));
+    assert!(content.contains("use postgres"));
+    assert!(!content.contains("irrelevant note"));
+}
+
+/// Integration test: export with no matching entries produces graceful output.
+#[tokio::test]
+async fn test_export_no_matches() {
+    let _guard = HOME_LOCK.lock().unwrap();
+    let tmp = tempfile::tempdir().unwrap();
+    env::set_var("HOME", tmp.path());
+
+    let out_path = tmp.path().join("empty.md");
+    export::run(
+        out_path.to_str().unwrap().to_string(),
+        None,
+        None,
+        Some("nonexistent-session".into()),
+    )
+    .await
+    .unwrap();
+
+    let content = std::fs::read_to_string(&out_path).unwrap();
+    assert!(content.contains("No entries matched"));
 }

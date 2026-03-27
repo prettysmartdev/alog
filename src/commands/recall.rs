@@ -19,7 +19,7 @@ pub async fn run(
     let project_filter = project.as_deref();
     let category_filter = if category == "all" { None } else { Some(category.as_str()) };
 
-    let entries = logbook::load_filtered_entries(project_filter, category_filter).await?;
+    let entries = logbook::load_filtered_entries(project_filter, category_filter, None).await?;
 
     let effective_threshold = resolve_threshold(threshold).await;
     let mut results = search::fuzzy_search(&entries, &search_term, effective_threshold);

@@ -10,8 +10,9 @@ description: Use the alog CLI to write and recall persistent notes about your wo
 ## Commands
 
 ```
-alog write <category> "<entry>"  [--project=<name>]
+alog write <category> "<entry>"  [--project=<name>]  [--session=<id>]
 alog recall <category|all> "<search term>"  [--project=<name>]  [--count=<n>]  [--threshold=<n>]
+alog export <output-path>  [--project=<name>]  [--category=<name>]  [--session=<id>]
 ```
 
 ## Determining the project name
@@ -24,6 +25,19 @@ basename $(git rev-parse --show-toplevel)
 ```
 
 Use that value for every `--project=` flag.
+
+## Using sessions
+
+Tag every log entry with a session identifier so entries can be grouped and exported by session later.
+
+Use a stable session ID throughout a single work session. A good session ID is the Claude session ID if available, or a short unique string such as:
+
+```bash
+# Generate a session ID based on date and a short random suffix
+SESSION_ID="$(date +%Y%m%d)-$(cat /proc/sys/kernel/random/uuid | cut -d- -f1)"
+```
+
+Pass this as `--session=$SESSION_ID` on every `alog write` call during the session.
 
 ## Categories
 
@@ -41,6 +55,7 @@ Choose the most specific category that fits:
 | `perf` | Performance findings — what was slow, what helped, what to measure |
 | `tests` | Testing patterns, what's hard to test, or how the test suite is structured |
 | `setup` | Environment, toolchain, or configuration notes |
+| `summaries` | End-of-session summaries — use `/alog-summarize` to write these |
 
 ## When to write notes
 
@@ -52,8 +67,6 @@ Write proactively — don't wait to be asked. Log findings:
 - **When you notice a pattern** — record it with category `patterns`
 - **When you make a design call** — record the rationale with category `decisions`
 - **When you find a gotcha** — record it with category `warnings`
-
-Write entries that are useful to a future agent with no context. Include specifics: file names, function names, error messages, command output.
 
 ## When to recall notes
 
@@ -72,6 +85,16 @@ alog recall warnings "module or subsystem name" --project=myproject
 
 If results are noisy, narrow with `--threshold=70` (minimum 70% similarity) or `--count=5`.
 
+## Session summaries
+
+After a long work session (every 10–20 tool calls, or when the session ends), use `/alog-summarize` to write a summary of what was accomplished. This creates a `summaries` entry that can be exported later for human review.
+
+## Exporting entries
+
+Use `/alog-export` to generate Markdown reports from stored entries. For example:
+- "Give me summaries of today's sessions" → export `--category=summaries --session=<id>`
+- "Show me all bugs found in this project" → export `--project=myproject --category=bugfix`
+
 ## Entry writing guidelines
 
 - Be specific and self-contained — a future agent has no session context
@@ -82,20 +105,21 @@ If results are noisy, narrow with `--threshold=70` (minimum 70% similarity) or `
 ## Example workflow
 
 ```bash
+# Set session ID at the start of a work session
+SESSION_ID="$(date +%Y%m%d)-abc123"
+PROJECT=$(basename $(git rev-parse --show-toplevel))
+
 # Before starting work — search for prior knowledge
-alog recall all "authentication middleware" --project=myapi --count=5
+alog recall all "authentication middleware" --project=$PROJECT --count=5
 
 # After fixing a bug
-alog write bugfix "tokio runtime panicked with 'cannot block the async runtime' — was calling .unwrap() on a blocking read inside an async fn. Fix: wrap with tokio::task::spawn_blocking." --project=myapi
+alog write bugfix "tokio runtime panicked with 'cannot block the async runtime' — was calling .unwrap() on a blocking read inside an async fn. Fix: wrap with tokio::task::spawn_blocking." --project=$PROJECT --session=$SESSION_ID
 
 # After discovering a pattern
-alog write patterns "Error types in this codebase use thiserror derive macros with #[from] for automatic conversion. See src/errors.rs." --project=myapi
+alog write patterns "Error types in this codebase use thiserror derive macros with #[from] for automatic conversion. See src/errors.rs." --project=$PROJECT --session=$SESSION_ID
 
-# After hitting a dead end
-alog write problems "Tried using reqwest blocking client inside axum handler — caused runtime panic. Must use reqwest async client only." --project=myapi
-
-# After a successful approach
-alog write whatworks "Using cargo-watch with 'cargo watch -x test' gives fast feedback during TDD cycles in this project." --project=myapi
+# At the end of the session, write a summary
+alog write summaries "Implemented session tagging and export for alog. Added --session flag to write, new export subcommand with --category/--project/--session filters, and two Claude skills (alog-summarize, alog-export). All 48 tests pass." --project=$PROJECT --session=$SESSION_ID
 ```
 
 ## Consistency reminders
@@ -104,3 +128,4 @@ alog write whatworks "Using cargo-watch with 'cargo watch -x test' gives fast fe
 - A two-sentence entry written immediately is more valuable than a perfect entry written never
 - If you recall entries that are stale or wrong, overwrite with `--replace=<id>` (the id is returned by `alog recall`)
 - Prefer multiple narrow entries over one sprawling entry
+- Always tag entries with `--session` so they can be grouped and exported later

@@ -48,12 +48,14 @@ pub async fn save_entries(project: &str, category: &str, entries: &[LogEntry]) -
     Ok(())
 }
 
-/// Load entries matching optional project and category filters.
+/// Load entries matching optional project, category, and session filters.
 /// - `project = None`  → search all project directories
 /// - `category = None` → search all category files within the matched project directories
+/// - `session = None`  → no session filtering
 pub async fn load_filtered_entries(
     project: Option<&str>,
     category: Option<&str>,
+    session: Option<&str>,
 ) -> Result<Vec<LogEntry>> {
     let base = logbook_dir()?;
     if !base.exists() {
@@ -102,7 +104,14 @@ pub async fn load_filtered_entries(
             }
             let content = tokio::fs::read_to_string(&file_path).await?;
             if let Ok(entries) = serde_json::from_str::<Vec<LogEntry>>(&content) {
-                all_entries.extend(entries);
+                for entry in entries {
+                    if let Some(s) = session {
+                        if entry.session.as_deref() != Some(s) {
+                            continue;
+                        }
+                    }
+                    all_entries.push(entry);
+                }
             }
         }
     }
@@ -141,6 +150,18 @@ mod tests {
             category: category.into(),
             content: content.into(),
             project: None,
+            session: None,
+            created_at: Utc::now(),
+        }
+    }
+
+    fn make_entry_with_session(category: &str, content: &str, session: &str) -> LogEntry {
+        LogEntry {
+            id: uuid::Uuid::new_v4().to_string(),
+            category: category.into(),
+            content: content.into(),
+            project: None,
+            session: Some(session.into()),
             created_at: Utc::now(),
         }
     }
@@ -184,7 +205,38 @@ mod tests {
         save_entries("alpha", "notes", &a).await.unwrap();
         save_entries("beta", "notes", &b).await.unwrap();
 
-        let all = load_filtered_entries(None, Some("notes")).await.unwrap();
+        let all = load_filtered_entries(None, Some("notes"), None).await.unwrap();
         assert_eq!(all.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_load_filtered_by_session() {
+        let _guard = HOME_LOCK.lock().unwrap();
+        let tmp = tempfile::tempdir().unwrap();
+        env::set_var("HOME", tmp.path());
+
+        let entries = vec![
+            make_entry_with_session("notes", "session A entry", "sess-A"),
+            make_entry_with_session("notes", "session B entry", "sess-B"),
+            make_entry("notes", "no session entry"),
+        ];
+        save_entries("global", "notes", &entries).await.unwrap();
+
+        let filtered = load_filtered_entries(Some("global"), Some("notes"), Some("sess-A")).await.unwrap();
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].content, "session A entry");
+    }
+
+    #[tokio::test]
+    async fn test_session_field_roundtrips() {
+        let _guard = HOME_LOCK.lock().unwrap();
+        let tmp = tempfile::tempdir().unwrap();
+        env::set_var("HOME", tmp.path());
+
+        let entry = make_entry_with_session("notes", "with session", "my-session-123");
+        save_entries("global", "notes", &[entry]).await.unwrap();
+
+        let loaded = load_entries("global", "notes").await.unwrap();
+        assert_eq!(loaded[0].session.as_deref(), Some("my-session-123"));
     }
 }

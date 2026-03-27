@@ -7,6 +7,8 @@
   <img src="./docs/alog_logo.svg" width="420" alt="ALOG">
 </p>
 
+[![Tests](https://github.com/prettysmartdev/alog/actions/workflows/test.yml/badge.svg)](https://github.com/prettysmartdev/alog/actions/workflows/test.yml)
+
 ---
 
 # What is alog?

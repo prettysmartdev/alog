@@ -4,7 +4,16 @@
       "Bash(cargo build:*)",
       "Bash(wait)",
       "Bash(cargo test:*)",
-      "Bash(grep -E \"^\\(test |running |FAILED|error|ok$\\)\")"
+      "Bash(grep -E \"^\\(test |running |FAILED|error|ok$\\)\")",
+      "Bash(make test:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(make all:*)",
+      "WebSearch",
+      "Bash(cp /workspace/.claude/skills/alog.md /workspace/.claude/skills/alog/SKILL.md)",
+      "Bash(cp /workspace/.claude/skills/alog-export.md /workspace/.claude/skills/alog-export/SKILL.md)",
+      "Bash(cp /workspace/.claude/skills/alog-summarize.md /workspace/.claude/skills/alog-summarize/SKILL.md)"
     ]
   }
 }

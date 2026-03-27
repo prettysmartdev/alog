@@ -23,6 +23,9 @@ pub enum Commands {
         /// Add this entry and delete the entry with the given ID
         #[arg(long)]
         replace: Option<String>,
+        /// Session identifier to tag this entry (max 100 chars)
+        #[arg(long)]
+        session: Option<String>,
     },
     /// Fuzzy search for log entries
     Recall {
@@ -39,5 +42,19 @@ pub enum Commands {
         /// Minimum percentage similarity a result must reach (0–100)
         #[arg(long)]
         threshold: Option<u8>,
+    },
+    /// Export log entries to a Markdown file (use "-" for stdout)
+    Export {
+        /// Output file path, or "-" to write to stdout
+        output: String,
+        /// Filter by category
+        #[arg(long)]
+        category: Option<String>,
+        /// Filter by project
+        #[arg(long)]
+        project: Option<String>,
+        /// Filter by session identifier
+        #[arg(long)]
+        session: Option<String>,
     },
 }

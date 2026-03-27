@@ -34,6 +34,7 @@ mod tests {
             category: "test".into(),
             content: content.into(),
             project: None,
+            session: None,
             created_at: Utc::now(),
         }
     }
