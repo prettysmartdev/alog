@@ -52,13 +52,15 @@ alog write decisions "switched from sqlx to diesel — better compile-time guara
 
 ## Claude Code Skills Integration
 
-`alog` ships with a Claude Code skill at `.claude/skills/alog.md`. When this skill is active, Claude automatically:
+`alog` ships with three Claude Code skills installed by `alog init`:
 
-- recalls relevant notes **before** starting non-trivial tasks
-- writes notes **after** fixing bugs, making decisions, or hitting dead ends
-- scopes all notes to the current repo using `--project=<git-root-name>`
+| Skill | Purpose |
+|-------|---------|
+| `.claude/skills/alog/` | Core: recall before tasks, write after findings, tag with sessions |
+| `.claude/skills/alog-summarize/` | Synthesize session summaries into the `summaries` category |
+| `.claude/skills/alog-export/` | Generate Markdown reports on request |
 
-The skill gives Claude a persistent working memory across sessions without any manual prompting.
+When active, Claude automatically recalls relevant notes before starting work, writes notes after fixing bugs or making decisions, and scopes all notes to the current repo using `--project=<git-root-name>`. The skills give Claude a persistent working memory across sessions without any manual prompting.
 
 ## Storage
 

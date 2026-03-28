@@ -65,9 +65,9 @@ Example output:
 ```
 Created /path/to/repo/.alog.json
 Download Claude Code skills (.claude/skills/) from the alog repository? [y/N] y
-Installed /path/to/repo/.claude/skills/alog.md
-Installed /path/to/repo/.claude/skills/alog-summarize.md
-Installed /path/to/repo/.claude/skills/alog-export.md
+Installed /path/to/repo/.claude/skills/alog/SKILL.md
+Installed /path/to/repo/.claude/skills/alog-summarize/SKILL.md
+Installed /path/to/repo/.claude/skills/alog-export/SKILL.md
 ```
 
 ### `.alog.json` format
@@ -199,9 +199,9 @@ The repo includes three Claude Code skills in `.claude/skills/`:
 
 | Skill | Purpose |
 |-------|---------|
-| `alog.md` | Core skill — recall before tasks, write after findings, use sessions |
-| `alog-summarize.md` | Synthesize a session summary and write it to the `summaries` category |
-| `alog-export.md` | Generate Markdown reports from stored entries on user request |
+| `alog/` | Core skill — recall before tasks, write after findings, use sessions |
+| `alog-summarize/` | Synthesize a session summary and write it to the `summaries` category |
+| `alog-export/` | Generate Markdown reports from stored entries on user request |
 
 When Claude Code loads these skills, Claude will:
 
@@ -212,7 +212,7 @@ When Claude Code loads these skills, Claude will:
 5. **Summarize** the session periodically and at the end using `/alog-summarize`
 6. **Export** entries on request using `/alog-export`
 
-Install skills via `alog init`, or copy the files from `.claude/skills/` manually into your project's `.claude/skills/` directory.
+Install skills via `alog init`, or copy the skill directories from `.claude/skills/` manually into your project's `.claude/skills/` directory.
 
 ### How project names are derived
 

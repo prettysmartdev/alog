@@ -13,7 +13,9 @@
       "WebSearch",
       "Bash(cp /workspace/.claude/skills/alog.md /workspace/.claude/skills/alog/SKILL.md)",
       "Bash(cp /workspace/.claude/skills/alog-export.md /workspace/.claude/skills/alog-export/SKILL.md)",
-      "Bash(cp /workspace/.claude/skills/alog-summarize.md /workspace/.claude/skills/alog-summarize/SKILL.md)"
+      "Bash(cp /workspace/.claude/skills/alog-summarize.md /workspace/.claude/skills/alog-summarize/SKILL.md)",
+      "Bash(~/.local/bin/alog recall:*)",
+      "Bash(/usr/local/bin/alog recall:*)"
     ]
   }
 }
