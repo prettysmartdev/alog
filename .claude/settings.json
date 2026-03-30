@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(alog write:*)",
+      "Bash(alog recall:*)",
+      "Bash(alog export:*)"
+    ]
+  }
+}

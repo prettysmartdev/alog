@@ -4,7 +4,21 @@
 
 ## Installation
 
-### Download a pre-built binary (recommended)
+### Install script (recommended)
+
+```bash
+curl -s https://prettysmart.dev/install/alog.sh | sh
+```
+
+This detects your platform and architecture, downloads the correct binary, and installs it to `/usr/local/bin/alog`.
+
+Verify the install:
+
+```bash
+alog --help
+```
+
+### Alternative: download a pre-built binary
 
 Download the binary for your platform from the [latest release](https://github.com/prettysmartdev/alog/releases/latest), extract it, and move it onto your `$PATH`:
 
@@ -24,7 +38,7 @@ Available archives:
 | macOS arm64 (Apple Silicon) | `alog-macos-arm64.tar.gz` |
 | Windows amd64 | `alog-windows-amd64.zip` |
 
-### Build from source
+### Alternative: build from source
 
 **Requirements:** Rust toolchain (stable) — install via [rustup](https://rustup.rs), `make`
 
@@ -37,12 +51,6 @@ make all
 
 # Build and install to /usr/local/bin/alog
 make install
-```
-
-Verify the install:
-
-```bash
-alog --help
 ```
 
 ## Initialising a Project

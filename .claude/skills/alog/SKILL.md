@@ -17,14 +17,15 @@ alog export <output-path>  [--project=<name>]  [--category=<name>]  [--session=<
 
 ## Determining the project name
 
-Always use `--project` to scope notes to the current repo. Derive the project name from the git root directory name:
+Always use `--project` to scope notes to the current repo. Run the bundled helper script to resolve the project name:
 
 ```bash
-# Get current project name
-basename $(git rev-parse --show-toplevel)
+PROJECT=$(.claude/skills/alog/get-project.sh)
 ```
 
-Use that value for every `--project=` flag.
+The script checks sources in priority order: git remote `origin` URL → `Cargo.toml` → `package.json` → `pyproject.toml` → git root folder name. It strips npm scope prefixes and normalizes the result to lowercase with hyphens.
+
+Use the resolved value for every `--project=` flag.
 
 ## Using sessions
 
@@ -87,7 +88,7 @@ If results are noisy, narrow with `--threshold=70` (minimum 70% similarity) or `
 
 ## Session summaries
 
-After a long work session (every 10–20 tool calls, or when the session ends), use `/alog-summarize` to write a summary of what was accomplished. This creates a `summaries` entry that can be exported later for human review.
+After completing any user prompt that involved file edits, write or update a session summary automatically — do not wait for the user to ask. Use `/alog-summarize` for this. This creates a `summaries` entry that can be exported later for human review.
 
 ## Exporting entries
 
@@ -107,7 +108,7 @@ Use `/alog-export` to generate Markdown reports from stored entries. For example
 ```bash
 # Set session ID at the start of a work session
 SESSION_ID="$(date +%Y%m%d)-abc123"
-PROJECT=$(basename $(git rev-parse --show-toplevel))
+PROJECT=$(.claude/skills/alog/get-project.sh)
 
 # Before starting work — search for prior knowledge
 alog recall all "authentication middleware" --project=$PROJECT --count=5
@@ -118,7 +119,7 @@ alog write bugfix "tokio runtime panicked with 'cannot block the async runtime' 
 # After discovering a pattern
 alog write patterns "Error types in this codebase use thiserror derive macros with #[from] for automatic conversion. See src/errors.rs." --project=$PROJECT --session=$SESSION_ID
 
-# At the end of the session, write a summary
+# After completing the task, write a session summary automatically
 alog write summaries "Implemented session tagging and export for alog. Added --session flag to write, new export subcommand with --category/--project/--session filters, and two Claude skills (alog-summarize, alog-export). All 48 tests pass." --project=$PROJECT --session=$SESSION_ID
 ```
 

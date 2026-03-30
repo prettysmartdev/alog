@@ -76,6 +76,14 @@ $HOME/.alog/
 
 Per-repo config lives at `GITROOT/.alog.json`.
 
+## Installation
+
+```bash
+curl -s https://prettysmart.dev/install/alog.sh | sh
+```
+
+This detects your platform and architecture, downloads the correct binary, and installs it to `/usr/local/bin/alog`. For alternative install methods (manual binary download, build from source) see **[docs/getting-started.md](docs/getting-started.md)**.
+
 ## Getting Started
 
-See **[docs/getting-started.md](docs/getting-started.md)** for installation, build instructions, and a walkthrough.
+See **[docs/getting-started.md](docs/getting-started.md)** for a full walkthrough.

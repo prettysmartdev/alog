@@ -15,7 +15,15 @@
       "Bash(cp /workspace/.claude/skills/alog-export.md /workspace/.claude/skills/alog-export/SKILL.md)",
       "Bash(cp /workspace/.claude/skills/alog-summarize.md /workspace/.claude/skills/alog-summarize/SKILL.md)",
       "Bash(~/.local/bin/alog recall:*)",
-      "Bash(/usr/local/bin/alog recall:*)"
+      "Bash(/usr/local/bin/alog recall:*)",
+      "Bash(alog recall:*)",
+      "Bash(make install:*)",
+      "Bash(env)",
+      "Read(//root/.claude/**)",
+      "Read(//tmp/**)",
+      "Bash(alog write:*)",
+      "Bash(alog export:*)",
+      "Bash(chmod:*)"
     ]
   }
 }
